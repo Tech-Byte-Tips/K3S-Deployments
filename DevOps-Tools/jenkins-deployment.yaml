@@ -1,0 +1,69 @@
+# Create the Jenkins Namespace
+
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: jenkins
+  labels:
+    name: Jenkins
+
+---
+
+# Create the Jenkins Deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+  namespace: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: Jenkins
+  template:
+    metadata:
+      labels:
+        app: Jenkins
+    spec:
+      containers:
+      - name: jenkins
+        image: jenkins/jenkins:lts-jdk11
+        ports:
+        - containerPort: 8080
+        # Will be using a volume mapped to the host
+        volumeMounts:
+        - name: jenkins-home
+          mountPath: /var/jenkins_home
+      volumes:
+      - name: jenkins-home
+        emptyDir: { }
+
+---
+
+# Define the Jenkins Service so it is accessible from outside the container
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  namespace: jenkins
+spec:
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: Jenkins
+status:
+  loadBalancer:
+    ingress:
+    - ip: 10.0.0.80
+
+# Execute by running:
+# kubectl apply -f jenkins-deployment.yaml
+
+# To get the Jenkins setup password from the pod run:
+# kubectl logs <jenkins pod name> -n Jenkins
+# Log into the IP:port for the service and log in.
