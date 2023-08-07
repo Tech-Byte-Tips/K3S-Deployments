@@ -71,7 +71,7 @@ metadata:
   namespace: devops-tools
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 5Gi
